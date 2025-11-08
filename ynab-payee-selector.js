@@ -23,7 +23,7 @@
   
   // Setup selectors and collections
   const listContainer = document.querySelector('div.ynab-list-in-time');
-  const getPayeeItems = () => payeeModal.querySelectorAll('li.modal-payee-list-item:not(.modal-payee-list-title)');
+  const getPayeeItems = () => payeeModal.querySelectorAll('li.modal-payee-list-item');
   
   const selected = [];
   const skipped = [];
