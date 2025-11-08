@@ -34,17 +34,10 @@
    * Returns the total count for all currently selected payees
    */
   const getTransactionCount = () => {
-    // Check single payee button
-    const singleButton = payeeModal.querySelector('button.used-in-transactions');
-    if (singleButton) {
-      const match = singleButton.textContent.trim().match(/Show\s+(\d+)\s+Transaction/i);
-      if (match) return parseInt(match[1]);
-    }
-    
-    // Check multiple payee selection span
-    const multipleSpan = payeeModal.querySelector('.modal-payees-multiple-enable span');
-    if (multipleSpan) {
-      const match = multipleSpan.textContent.trim().match(/Show\s+(\d+)\s+Transaction/i);
+    // Use the "Show X Transactions" button
+    const usedInButton = payeeModal.querySelector('button.used-in-transactions');
+    if (usedInButton) {
+      const match = usedInButton.textContent.trim().match(/Show\s+(\d+)\s+Transaction/i);
       if (match) return parseInt(match[1]);
     }
     
