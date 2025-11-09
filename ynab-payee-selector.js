@@ -72,7 +72,9 @@
       
       if (!checkbox || !nameBtn) continue;
       
-      const name = nameBtn.textContent.trim();
+      // Get the payee's name from title attribute.
+      // Also don't trim because the name can have leading/trailing spaces
+      const name = nameBtn.getAttribute('title');
       
       // Skip already processed payees
       if (processedNames.has(name)) continue;
@@ -113,25 +115,14 @@
         skipped.push({name, count: itemTransactions});
         
         // Uncheck the payee (find it again in case DOM changed)
-        const freshItems = getPayeeItems();
-        let freshCheckboxToUncheck = null;
+        const freshNameBtn = listContainer.querySelector(`button.modal-payee-list-button[title="${name}"]`);
+        const freshCheckbox = freshNameBtn?.previousElementSibling;
         
-        for (let j = 0; j < freshItems.length; j++) {
-          const freshNameBtn = freshItems[j].querySelector('button.modal-payee-list-button');
-          if (freshNameBtn && freshNameBtn.textContent.trim() === name) {
-            const freshCheckbox = freshItems[j].querySelector('button.ynab-checkbox');
-            if (freshCheckbox && freshCheckbox.classList.contains('is-checked')) {
-              freshCheckboxToUncheck = freshCheckbox;
-              break;
-            }
-          }
-        }
-        
-        if (!freshCheckboxToUncheck) {
+        if (!freshCheckbox) {
           console.log('  ⚠️  Warning: Could not find checkbox to uncheck');
         } else {
           // Uncheck and wait for the payee header to change as a sign of the click being processed
-          await performAndWait(() => freshCheckboxToUncheck.click(), getPayeeHeaderInnerHTML, 100);
+          await performAndWait(() => freshCheckbox.click(), getPayeeHeaderInnerHTML, 100);
         }
       }
       
