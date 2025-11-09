@@ -22,7 +22,7 @@
   }
   
   // Setup selectors and collections
-  const listContainer = document.querySelector('div.ynab-list-in-time');
+  const listContainer = payeeModal.querySelector('div.ynab-list-in-time');
   const getPayeeItems = () => payeeModal.querySelectorAll('li.modal-payee-list-item');
   
   const selected = [];
