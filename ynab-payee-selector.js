@@ -101,7 +101,6 @@
         skipped.push({name, count: itemTransactions});
         
         // Uncheck the payee (find it again in case DOM changed)
-        await wait(100);
         const freshItems = getPayeeItems();
         let found = false;
         
