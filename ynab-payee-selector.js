@@ -9,7 +9,18 @@
  */
 
 (async () => {
-  const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+  // Take action then waits to observe a change (in ms)
+  const performAndWait = async (action, observer, timeout) => {
+    const initial = observer();
+    action();
+    const start = Date.now();
+
+    while (Date.now() - start < timeout) {
+      await new Promise(resolve => setTimeout(resolve, 5));
+      const current = observer();
+      if (current !== initial) return;
+    }
+  }
   
   console.log('YNAB Payee Selector\n');
   console.log('Selecting all payees with zero transactions...\n');
@@ -24,6 +35,7 @@
   // Setup selectors and collections
   const listContainer = payeeModal.querySelector('div.ynab-list-in-time');
   const getPayeeItems = () => payeeModal.querySelectorAll('li.modal-payee-list-item');
+  const getPayeeHeaderInnerHTML = () => payeeModal.querySelector('.modal-payees-header')?.innerHTML;
   
   const selected = [];
   const skipped = [];
@@ -87,8 +99,8 @@
       
       // Check the payee and measure transaction count change
       const countBefore = getTransactionCount() || 0;
-      checkbox.click();
-      await wait(300);
+      // Wait for the payee header to change as a sign of the click being processed
+      await performAndWait(() => checkbox.click(), getPayeeHeaderInnerHTML, 300);
       
       const countAfter = getTransactionCount() || 0;
       const itemTransactions = countAfter - countBefore;
@@ -102,24 +114,25 @@
         
         // Uncheck the payee (find it again in case DOM changed)
         const freshItems = getPayeeItems();
-        let found = false;
+        let freshCheckboxToUncheck = null;
         
         for (let j = 0; j < freshItems.length; j++) {
           const freshNameBtn = freshItems[j].querySelector('button.modal-payee-list-button');
           if (freshNameBtn && freshNameBtn.textContent.trim() === name) {
             const freshCheckbox = freshItems[j].querySelector('button.ynab-checkbox');
             if (freshCheckbox && freshCheckbox.classList.contains('is-checked')) {
-              freshCheckbox.click();
-              found = true;
+              freshCheckboxToUncheck = freshCheckbox;
               break;
             }
           }
         }
         
-        if (!found) {
+        if (!freshCheckboxToUncheck) {
           console.log('  ⚠️  Warning: Could not find checkbox to uncheck');
+        } else {
+          // Uncheck and wait for the payee header to change as a sign of the click being processed
+          await performAndWait(() => freshCheckboxToUncheck.click(), getPayeeHeaderInnerHTML, 100);
         }
-        await wait(100);
       }
       
       return true;
@@ -138,8 +151,12 @@
     if (!processed) {
       // No unprocessed items visible, scroll to load more
       console.log('\nScrolling for more items...');
-      listContainer.scrollTop = listContainer.scrollTop + 500;
-      await wait(500);
+      // Scroll and wait for the list's HTML to change as a sign of the scroll being processed
+      await performAndWait(
+        () => listContainer.scrollTop = listContainer.scrollTop + 500,
+        () => listContainer.innerHTML,
+        500
+      );
       scrollsSinceLastProcess++;
     } else {
       scrollsSinceLastProcess = 0;
